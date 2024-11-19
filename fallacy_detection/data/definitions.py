@@ -14,12 +14,16 @@ ALL_LOGIC_FALLACIES = [
     "False Dilemma",
 ]
 
+ALL_LOGIC_FALLACIES_LOWER = [fallacy.lower() for fallacy in ALL_LOGIC_FALLACIES]
+
 ALL_COPI_COARSE_GRAINED_LOGIC_FALLACIES = [
     "Fallacy of Relevance",
     "Fallacy of Defective Induction",
     "Fallacy of Presumption",
     "Fallacy of Ambiguity",
 ]
+
+ALL_COPI_COARSE_GRAINED_LOGIC_FALLACIES_LOWER = [fallacy.lower() for fallacy in ALL_COPI_COARSE_GRAINED_LOGIC_FALLACIES]
 
 ALL_LOGIC_FALLACIES_WITH_DEFINITION = [
     "Appeal To Emotion: attempting to arouse non-rational sentiments within the intended audience in order to persuade.",
