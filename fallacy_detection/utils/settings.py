@@ -17,7 +17,7 @@ class Settings:
             model = LlamaForCausalLM.from_pretrained(
                 model_name, token=os.environ["llama_hf_token"], torch_dtype=torch.bfloat16, device_map="auto"
             )
-        elif "mistral" in model_name:
+        elif "mistral" or "falcon" in model_name:
             model = AutoModelForCausalLM.from_pretrained(
                 model_name, token=os.environ["general_hf_token"], torch_dtype=torch.bfloat16, device_map="auto"
             )
@@ -32,7 +32,7 @@ class Settings:
                 model_name, token=os.environ["llama_hf_token"], torch_dtype=torch.bfloat16, device_map="auto"
             )
             tokenizer.pad_token = tokenizer.eos_token
-        elif "mistral" in model_name:
+        elif "mistral" or "falcon" in model_name:
             tokenizer = AutoTokenizer.from_pretrained(
                 model_name, token=os.environ["general_hf_token"], device_map="auto"
             )
@@ -59,7 +59,7 @@ class Settings:
             )
             input_ids = encoding["input_ids"].to(device)
             attention_mask = encoding["attention_mask"].to(device)
-        elif "mistral" in model_name:
+        elif "mistral" or "falcon" in model_name:
             prompts = [
                 get_logic_prompt(
                     coarse_grained=coarse_grained_classification, include_definitions=include_definitions

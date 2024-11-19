@@ -5,3 +5,11 @@ hydra-core
 accelerate
 tqdm
 transformers[sentencepiece] == 4.46.0
+plotly==5.24.1
+jupyter
+anywidget
+kaleido
+scikit-learn
+pandas
+numpy
+matplotlib

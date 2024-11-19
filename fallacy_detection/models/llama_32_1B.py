@@ -1,6 +1,5 @@
-from transformers import pipeline
 import torch
-from transformers import LlamaForCausalLM, LlamaTokenizer, AutoTokenizer, LlamaModel
+from transformers import LlamaForCausalLM, AutoTokenizer
 
 from accelerate import Accelerator
 

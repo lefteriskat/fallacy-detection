@@ -59,12 +59,12 @@ def predict(cfg: DictConfig) -> None:
                 predicted = tokenizer.decode(
                     outputs[i][prompt_length:], skip_special_tokens=True, clean_up_tokenization_spaces=True
                 )
-                
+
                 if coarse_grained_classification:
                     target_label = coarse_labels[i].lower()
                 else:
                     target_label = labels[i].lower()
-                    
+
                 if total % 10 == 0:
                     print("Generated Text:", predicted_all)
                     print("Predicted_label:", predicted)
