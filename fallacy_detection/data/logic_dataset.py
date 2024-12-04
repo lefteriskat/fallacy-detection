@@ -12,9 +12,8 @@ def new_label(label: str):
 
 
 def preprocess_dataframe(dataframe: pd.DataFrame):
-    dataframe = dataframe[["source_article", "updated_label", "coarse_label"]]
-    dataframe = dataframe[dataframe["updated_label"] != "miscellaneous"]
-    dataframe["updated_label"] = dataframe["updated_label"].map(new_label)
+    dataframe = dataframe[dataframe["fallacy_type"] != "miscellaneous"]
+    dataframe["fallacy_type"] = dataframe["fallacy_type"].map(new_label)
     return dataframe
 
 
@@ -29,12 +28,14 @@ class LogicDataset(Dataset):
 
     def __getitem__(self, idx):
         # Get text and label for the specified index
-        segment = self.dataframe.loc[idx, "source_article"]
-        label = self.dataframe.loc[idx, "updated_label"]
-        coarse_label = self.dataframe.loc[idx, "coarse_label"]
+        text = self.dataframe.loc[idx, "text"]
+        fallacy_type = self.dataframe.loc[idx, "fallacy_type"]
+        copi_fallacy_type = self.dataframe.loc[idx, "copi_fallacy_type"]
+        aristotle_fallacy_type = self.dataframe.loc[idx, "aristotle_fallacy_type"]
 
         return {
-            "segment": segment,
-            "label": label,
-            "coarse_label": coarse_label,
+            "text": text,
+            "fallacy_type": fallacy_type,
+            "copi_fallacy_type": copi_fallacy_type,
+            "aristotle_fallacy_type": aristotle_fallacy_type,
         }

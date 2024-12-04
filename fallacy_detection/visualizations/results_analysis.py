@@ -17,8 +17,11 @@ from sklearn.metrics import f1_score, accuracy_score
 def clean_predicted_coarse_grained_label(json_label):
     # Use regular expressions to find the JSON part of the string
     for coarse_grained_fallacy in ALL_COPI_COARSE_GRAINED_LOGIC_FALLACIES:
-        if coarse_grained_fallacy.lower() in json_label:
-            return coarse_grained_fallacy.lower()
+        try:
+            if coarse_grained_fallacy.lower() in json_label:
+                return coarse_grained_fallacy.lower()
+        except:
+            return "unknown"
 
     fallacy_match = re.search(r'"detected_fallacy"\s*:\s*"([^"]+)"', json_label)
     if fallacy_match:
@@ -30,9 +33,12 @@ def clean_predicted_coarse_grained_label(json_label):
 
 def clean_predicted_fine_grained_label(json_label):
     # Use regular expressions to find the JSON part of the string
-    for coarse_grained_fallacy in ALL_LOGIC_FALLACIES:
-        if coarse_grained_fallacy.lower() in json_label:
-            return coarse_grained_fallacy.lower()
+    for fine_grained_fallacy in ALL_LOGIC_FALLACIES:
+        try:
+            if fine_grained_fallacy.lower() in json_label:
+                return fine_grained_fallacy.lower()
+        except:
+            return "unknown"
 
     fallacy_match = re.search(r'"detected_fallacy"\s*:\s*"([^"]+)"', json_label)
     if fallacy_match:
@@ -68,10 +74,12 @@ def preprocess_results(dataframe: pd.DataFrame, coarse_grained: bool, from_fine_
     return dataframe
 
 
-def extract_metrics(model_name: str, coarse_grained: bool, definitions: bool, from_fine_to_coarse: bool = False):
-    dataframe = pd.read_csv(
-        f"reports/{model_name.replace('/', '-')}_{'coarse_grained' if coarse_grained else 'fine_grained'}_results{'_with_definitions' if definitions else '_no_definitions'}.csv"
-    )
+def extract_metrics(
+    model_name: str, prompt_option: int, coarse_grained: bool, definitions: bool, from_fine_to_coarse: bool = False
+):
+    filename = f"reports/{model_name.replace('/', '-')}_prompt{prompt_option}_{'coarse_grained' if coarse_grained else 'fine_grained'}_results{'_with_definitions' if definitions else '_no_definitions'}.csv"
+    dataframe = pd.read_csv(filename)
+    print(filename)
     dataframe = preprocess_results(dataframe, coarse_grained, from_fine_to_coarse)
 
     metrics_dict = {"model": model_name.split("/", 1)[1], "definitions": definitions}
@@ -108,9 +116,8 @@ def extract_metrics(model_name: str, coarse_grained: bool, definitions: bool, fr
 
 
 def create_plots(model_name: str, coarse_grained: bool, definitions: bool, from_fine_to_coarse: bool = False):
-    dataframe = pd.read_csv(
-        f"reports/{model_name.replace('/', '-')}_{'coarse_grained' if coarse_grained else 'fine_grained'}_results{'_with_definitions' if definitions else '_no_definitions'}.csv"
-    )
+    filename = f"reports/{model_name.replace('/', '-')}_{'coarse_grained' if coarse_grained else 'fine_grained'}_results{'_with_definitions' if definitions else '_no_definitions'}.csv"
+    dataframe = pd.read_csv(filename)
     dataframe = preprocess_results(dataframe, coarse_grained, from_fine_to_coarse)
 
     filename1 = f"{PLOTS_FOLDER}true_label_hist_{model_name.replace('/', '-')}_{'coarse_grained' if coarse_grained else 'fine_grained'}_results{'_with_definitions' if definitions else '_no_definitions'}.png"
@@ -140,13 +147,19 @@ def create_plots(model_name: str, coarse_grained: bool, definitions: bool, from_
 
 def run_metrics(coarse_grained: bool = False, from_fine_to_coarse: bool = False):
     results_data = []
-    for model in TARGET_MODELS:
-        results_data.append(
-            extract_metrics(model, coarse_grained, definitions=False, from_fine_to_coarse=from_fine_to_coarse)
-        )
-        results_data.append(
-            extract_metrics(model, coarse_grained, definitions=True, from_fine_to_coarse=from_fine_to_coarse)
-        )
+    PROMPT_OPTIONS = [1]
+    for prompt_option in PROMPT_OPTIONS:
+        for model in TARGET_MODELS:
+            results_data.append(
+                extract_metrics(
+                    model, prompt_option, coarse_grained, definitions=False, from_fine_to_coarse=from_fine_to_coarse
+                )
+            )
+            results_data.append(
+                extract_metrics(
+                    model, prompt_option, coarse_grained, definitions=True, from_fine_to_coarse=from_fine_to_coarse
+                )
+            )
 
     df = pd.DataFrame(results_data)
     # Round all float columns to 3 decimal places
@@ -173,4 +186,4 @@ if __name__ == "__main__":
     run_metrics(coarse_grained=True)
     run_metrics(from_fine_to_coarse=True)
 
-    run_plots()
+    # run_plots()

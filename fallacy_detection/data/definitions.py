@@ -1,3 +1,5 @@
+from enum import Enum
+
 ALL_LOGIC_FALLACIES = [
     "Appeal to Emotion",
     "False Causality",
@@ -25,6 +27,12 @@ ALL_COPI_COARSE_GRAINED_LOGIC_FALLACIES = [
 
 ALL_COPI_COARSE_GRAINED_LOGIC_FALLACIES_LOWER = [fallacy.lower() for fallacy in ALL_COPI_COARSE_GRAINED_LOGIC_FALLACIES]
 
+ALL_ARISTOTLE_COARSE_GRAINED_LOGIC_FALLACIES = ["Fallacy of Credibility", "Fallacy of Logic", "Fallacy of Emotion"]
+
+ALL_ARISTOTLE_COARSE_GRAINED_LOGIC_FALLACIES_LOWER = [
+    fallacy.lower() for fallacy in ALL_ARISTOTLE_COARSE_GRAINED_LOGIC_FALLACIES
+]
+
 ALL_LOGIC_FALLACIES_WITH_DEFINITION = [
     "Appeal To Emotion: attempting to arouse non-rational sentiments within the intended audience in order to persuade.",
     "False Causality: occurs when someone mistakenly assumes that because one event follows another, the first event caused the second, without sufficient evidence for a causal link.",
@@ -41,11 +49,25 @@ ALL_LOGIC_FALLACIES_WITH_DEFINITION = [
     "Intentional Fallacy: Some intentional (sometimes subconscious) action/choice to incorrectly support an argument.",
 ]
 
+# ALL_COPI_COARSE_GRAINED_FALLACIES_WITH_DEFINITION = [
+#     "Fallacy of Relevance: Occurs when premises are logically irrelevant to the conclusion and includes the following subcategories: Ad Hominem, Ad Populum, Appeal to Emotion, Fallacy of Extension, Intentional Fallacy.",
+#     "Fallacy of Defective Induction: Premises provide weak or insufficient grounds for the conclusion, often through flawed inductive reasoning and includes the following subcategories: False Causality, False Dilemma, Faulty Generalization, Fallacy of Logic, Fallacy of Credibility.",
+#     "Fallacy of Presumption: Relies on unwarranted assumptions, creating unsupported or circular reasoning and includes the following subcategories: Circular Reasoning, Begging the Question, Complex Question, Accident",
+#     "Fallacy of Ambiguity: Uses ambiguous language or phrasing that creates confusion or multiple interpretations, disrupting logical connections between premise and conclusion and includes the following subcategories: Equivocation, Amphiboly, Accent, Composition, Division.",
+# ]
+
 ALL_COPI_COARSE_GRAINED_FALLACIES_WITH_DEFINITION = [
-    "Fallacy of Relevance: Occurs when premises are logically irrelevant to the conclusion and includes the following subcategories: Ad Hominem, Ad Populum, Appeal to Emotion, Fallacy of Extension, Intentional Fallacy.",
-    "Fallacy of Defective Induction: Premises provide weak or insufficient grounds for the conclusion, often through flawed inductive reasoning and includes the following subcategories: False Causality, False Dilemma, Faulty Generalization, Fallacy of Logic, Fallacy of Credibility.",
-    "Fallacy of Presumption: Relies on unwarranted assumptions, creating unsupported or circular reasoning and includes the following subcategories: Circular Reasoning, Begging the Question, Complex Question, Accident",
-    "Fallacy of Ambiguity: Uses ambiguous language or phrasing that creates confusion or multiple interpretations, disrupting logical connections between premise and conclusion and includes the following subcategories: Equivocation, Amphiboly, Accent, Composition, Division.",
+    "Fallacy of Relevance: These occur when the premises are not logically relevant to the conclusion, often relying on emotional appeals, distractions, or personal attacks rather than valid reasoning.",
+    "Fallacy of Defective Induction: These involve weak or insufficient evidence leading to a conclusion, where the premises fail to provide strong support for the argument.",
+    "Fallacy of Ambiguity: These arise from unclear or misleading language that creates confusion or misinterpretation, often through ambiguous wording or structure.",
+    "Fallacy of Presumption: These occur when an argument assumes something without proper justification, relying on unstated or unsupported premises that fail to validate the conclusion.",
+]
+
+
+ALL_ARISTOTLE_COARSE_GRAINED_FALLACIES_WITH_DEFINITION = [
+    "Fallacy of Credibility: These fallacies occur when the appeal to credibility or character is flawed or misused.",
+    "Fallacy of Logic: These fallacies occur when the logical structure of an argument is flawed.",
+    "Fallacy of Emotion: These fallacies involve manipulative emotional appeals that bypass logical reasoning.",
 ]
 
 
@@ -54,7 +76,7 @@ COPI_COARSE_GRAINED_TO_FINE_GRAINDED_MAPPINGS = {
         "ad hominem",
         "ad populum",
         "appeal to emotion",
-        "intentional",
+        "intentional fallacy",
         "fallacy of extension",
         "fallacy of relevance",
     ],
@@ -74,3 +96,38 @@ COPI_FINE_GRAINED_TO_COARSE_GRAINDED_MAPPINGS = {
     for key in COPI_COARSE_GRAINED_TO_FINE_GRAINDED_MAPPINGS.keys()
     for value in COPI_COARSE_GRAINED_TO_FINE_GRAINDED_MAPPINGS[key]
 }
+
+
+ARISTOTLE_COARSE_GRAINED_TO_FINE_GRAINDED_MAPPINGS = {
+    "Fallacy of Credibility": [
+        "ad hominem",
+        "ad populum",
+        "fallacy of credibility",
+    ],
+    "Fallacy of Logic": [
+        "false causality",
+        "false dilemma",
+        "faulty generalization",
+        "fallacy of logic",
+        "circular reasoning",
+        "equivocation",
+        "fallacy of relevance",
+    ],
+    "Fallacy of Emotion": [
+        "appeal to emotion",
+        "intentional fallacy",
+        "fallacy of extension",
+    ],
+}
+
+ARISTOTLE_FINE_GRAINED_TO_COARSE_GRAINDED_MAPPINGS = {
+    value: key
+    for key in ARISTOTLE_COARSE_GRAINED_TO_FINE_GRAINDED_MAPPINGS.keys()
+    for value in ARISTOTLE_COARSE_GRAINED_TO_FINE_GRAINDED_MAPPINGS[key]
+}
+
+
+class FallacyClass(Enum):
+    FINE_GRAINED = 1
+    COPI = 2
+    ARISTOTLE = 3

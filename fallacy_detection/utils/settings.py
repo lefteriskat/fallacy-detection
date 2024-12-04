@@ -2,9 +2,11 @@ from omegaconf import DictConfig
 from transformers import LlamaForCausalLM, AutoModelForCausalLM, AutoTokenizer
 import torch
 import os
+import numpy as np
+import random
 
-from fallacy_detection.data.llama_prompts_logic import get_logic_prompt, delimiter
-
+from fallacy_detection.prompts.prompt import get_logic_prompt
+from fallacy_detection.data.definitions import FallacyClass
 
 class Settings:
     def __init__(self, cfg: DictConfig) -> None:
@@ -43,38 +45,44 @@ class Settings:
     def get_model_inputs(self, tokenizer: AutoTokenizer, segments: list[str], device):
         model_name = self.cfg.model.name
         include_definitions = self.cfg.prompt.definitions
-        coarse_grained_classification = self.cfg.prompt.coarse_grained_classification
+        fallacy_class = FallacyClass(self.cfg.prompt.fallacy_classes)
+        prompt_option = self.cfg.prompt.option
+        prompts = [
+            get_logic_prompt(
+                option=prompt_option,
+                fallacy_class=fallacy_class,
+                include_definitions=include_definitions,
+                segment=segment,
+            )
+            for segment in segments
+        ]
+        
         if "llama" in model_name:
-            prompts = [
-                get_logic_prompt(
-                    coarse_grained=coarse_grained_classification, include_definitions=include_definitions
-                ).format(delimiter=delimiter, segment=segment)
-                for segment in segments
-            ]
             encoding = tokenizer(
                 prompts[0],
                 # truncation=True,
                 # padding=True,
                 return_tensors="pt",
             )
-            input_ids = encoding["input_ids"].to(device)
-            attention_mask = encoding["attention_mask"].to(device)
         elif "mistral" or "falcon" in model_name:
-            prompts = [
-                get_logic_prompt(
-                    coarse_grained=coarse_grained_classification, include_definitions=include_definitions
-                ).format(delimiter=delimiter, segment=segment)
-                for segment in segments
-            ]
             encoding = tokenizer(
                 prompts[0],
                 # truncation=True,
                 # padding=True,
                 return_tensors="pt",
             )
-            input_ids = encoding["input_ids"].to(device)
-            attention_mask = encoding["attention_mask"].to(device)
         else:
             raise NotImplementedError
 
-        return input_ids, attention_mask
+        # input_ids = encoding["input_ids"].to(device)
+        # attention_mask = encoding["attention_mask"].to(device)
+        return encoding.to(device)
+
+    @staticmethod
+    def set_seed(seed=42):
+        random.seed(seed)
+        os.environ["PYHTONHASHSEED"] = str(seed)
+        np.random.seed(seed)
+        torch.manual_seed(seed)
+        torch.cuda.manual_seed(seed)
+        torch.backends.cudnn.deterministic = True
