@@ -1,9 +1,9 @@
 from fallacy_detection.data.definitions import (
-    ALL_COPI_COARSE_GRAINED_LOGIC_FALLACIES,
-    ALL_LOGIC_FALLACIES,
     COPI_FINE_GRAINED_TO_COARSE_GRAINDED_MAPPINGS,
-    ALL_COPI_COARSE_GRAINED_LOGIC_FALLACIES_LOWER,
-    ALL_LOGIC_FALLACIES_LOWER,
+    ARISTOTLE_FINE_GRAINED_TO_COARSE_GRAINDED_MAPPINGS,
+    ALL_FALLACIES_PER_FALLACY_CLASS,
+    ALL_FALLACIES_PER_FALLACY_CLASS_LOWER,
+    FallacyClass,
 )
 
 from fallacy_detection.models.model import TARGET_MODELS
@@ -13,43 +13,31 @@ import re
 import plotly.express as px
 from sklearn.metrics import f1_score, accuracy_score
 
+FAILED = "failed"
 
-def clean_predicted_coarse_grained_label(json_label):
+
+def clean_predicted_label(json_label, fallacy_class: FallacyClass):
     # Use regular expressions to find the JSON part of the string
-    for coarse_grained_fallacy in ALL_COPI_COARSE_GRAINED_LOGIC_FALLACIES:
+    for fallacy in ALL_FALLACIES_PER_FALLACY_CLASS[fallacy_class]:
         try:
-            if coarse_grained_fallacy.lower() in json_label:
-                return coarse_grained_fallacy.lower()
+            if fallacy.lower() in json_label:
+                return fallacy.lower()
         except:
-            return "unknown"
+            return FAILED
 
     fallacy_match = re.search(r'"detected_fallacy"\s*:\s*"([^"]+)"', json_label)
     if fallacy_match:
         # Extract the matched fallacy if found
-        return fallacy_match.group(1) if fallacy_match else json_label
+        return fallacy_match.group(1)
     else:
-        return "unknown"
+        return FAILED
 
 
-def clean_predicted_fine_grained_label(json_label):
-    # Use regular expressions to find the JSON part of the string
-    for fine_grained_fallacy in ALL_LOGIC_FALLACIES:
-        try:
-            if fine_grained_fallacy.lower() in json_label:
-                return fine_grained_fallacy.lower()
-        except:
-            return "unknown"
-
-    fallacy_match = re.search(r'"detected_fallacy"\s*:\s*"([^"]+)"', json_label)
-    if fallacy_match:
-        # Extract the matched fallacy if found
-        return fallacy_match.group(1) if fallacy_match else json_label
-    else:
-        return "unknown"
-
-
-def map_to_coarse_grained(fine_grained):
-    return COPI_FINE_GRAINED_TO_COARSE_GRAINDED_MAPPINGS.get(fine_grained, "unknown").lower()
+def map_to_coarse_grained(fine_grained, fallacy_class: FallacyClass):
+    if fallacy_class == FallacyClass.COPI:
+        return COPI_FINE_GRAINED_TO_COARSE_GRAINDED_MAPPINGS.get(fine_grained, FAILED).lower()
+    elif fallacy_class == FallacyClass.ARISTOTLE:
+        return ARISTOTLE_FINE_GRAINED_TO_COARSE_GRAINDED_MAPPINGS.get(fine_grained, FAILED).lower()
 
 
 OUTPUT_FOLDER = "reports/analysed_results/"
@@ -57,16 +45,20 @@ PLOTS_FOLDER = "reports/analysed_results/plots/"
 METRICS_FOLDER = "reports/analysed_results/metrics/"
 
 
-def preprocess_results(dataframe: pd.DataFrame, coarse_grained: bool, from_fine_to_coarse: bool = False):
+def preprocess_results(dataframe: pd.DataFrame, fallacy_class: FallacyClass, from_fine_to_coarse: FallacyClass):
     # clean predicted_label
-    if coarse_grained:
-        dataframe["predicted_label"] = dataframe["predicted_label"].map(clean_predicted_coarse_grained_label)
-    else:
-        dataframe["predicted_label"] = dataframe["predicted_label"].map(clean_predicted_fine_grained_label)
 
-    if from_fine_to_coarse:
-        dataframe["predicted_label"] = dataframe["predicted_label"].map(map_to_coarse_grained)
-        dataframe["true_label"] = dataframe["true_label"].map(map_to_coarse_grained)
+    dataframe["predicted_label"] = dataframe["predicted_label"].apply(
+        lambda predicted_label: clean_predicted_label(predicted_label, fallacy_class)
+    )
+
+    if from_fine_to_coarse != FallacyClass.FINE_GRAINED:
+        dataframe["predicted_label"] = dataframe["predicted_label"].apply(
+            lambda predicted_label: map_to_coarse_grained(predicted_label, from_fine_to_coarse)
+        )
+        dataframe["true_label"] = dataframe["true_label"].apply(
+            lambda true_label: map_to_coarse_grained(true_label, from_fine_to_coarse)
+        )
 
     # create a column that is true if the predicted label is the same as the true label
     dataframe["correct_prediction"] = dataframe["predicted_label"] == dataframe["true_label"]
@@ -75,14 +67,17 @@ def preprocess_results(dataframe: pd.DataFrame, coarse_grained: bool, from_fine_
 
 
 def extract_metrics(
-    model_name: str, prompt_option: int, coarse_grained: bool, definitions: bool, from_fine_to_coarse: bool = False
+    model_name: str,
+    prompt_option: int,
+    fallacy_class: FallacyClass,
+    definitions: bool,
+    from_fine_to_coarse: FallacyClass = FallacyClass.FINE_GRAINED,
 ):
-    filename = f"reports/{model_name.replace('/', '-')}_prompt{prompt_option}_{'coarse_grained' if coarse_grained else 'fine_grained'}_results{'_with_definitions' if definitions else '_no_definitions'}.csv"
+    filename = f"reports/{model_name.replace('/', '-')}_prompt{prompt_option}_basic_cot_{fallacy_class.name}_results{'_with_definitions' if definitions else '_no_definitions'}.csv"
     dataframe = pd.read_csv(filename)
-    print(filename)
-    dataframe = preprocess_results(dataframe, coarse_grained, from_fine_to_coarse)
+    dataframe = preprocess_results(dataframe, fallacy_class, from_fine_to_coarse)
 
-    metrics_dict = {"model": model_name.split("/", 1)[1], "definitions": definitions}
+    metrics_dict = {"model": model_name.split("/", 1)[1], "definitions": definitions, "prompt": prompt_option}
 
     metrics_dict["accuracy"] = (
         accuracy_score(dataframe["true_label"].to_numpy(), dataframe["predicted_label"].to_numpy()) * 100
@@ -91,25 +86,23 @@ def extract_metrics(
         dataframe["true_label"].to_numpy(), dataframe["predicted_label"].to_numpy(), average="macro"
     )
     # compute unknown percentage
-    unknown_count = dataframe["predicted_label"].eq("unknown").sum()
+    unknown_count = dataframe["predicted_label"].eq(FAILED).sum()
     total_count = len(dataframe["predicted_label"])
     unknown_percentage = (unknown_count / total_count) * 100
     metrics_dict["failed"] = unknown_percentage
     # compute percentage of labels not found in the LOGIC's dataset classes
-    if coarse_grained or from_fine_to_coarse:
-        different_labels_count = (
-            dataframe["predicted_label"]
-            .str.lower()
-            .apply(lambda x: x not in ALL_COPI_COARSE_GRAINED_LOGIC_FALLACIES_LOWER and x != "unknown")
-            .sum()
+    different_labels_count = (
+        dataframe["predicted_label"]
+        .str.lower()
+        .apply(
+            lambda x: x
+            not in ALL_FALLACIES_PER_FALLACY_CLASS_LOWER[
+                fallacy_class if from_fine_to_coarse == FallacyClass.FINE_GRAINED else from_fine_to_coarse
+            ]
+            and x != FAILED
         )
-    else:
-        different_labels_count = (
-            dataframe["predicted_label"]
-            .str.lower()
-            .apply(lambda x: x not in ALL_LOGIC_FALLACIES_LOWER and x != "unknown")
-            .sum()
-        )
+        .sum()
+    )
     different_labels_percentage = (different_labels_count / total_count) * 100
     metrics_dict["unknown labels"] = different_labels_percentage
     return metrics_dict
@@ -145,19 +138,19 @@ def create_plots(model_name: str, coarse_grained: bool, definitions: bool, from_
     fig2.write_image(filename2)
 
 
-def run_metrics(coarse_grained: bool = False, from_fine_to_coarse: bool = False):
+def run_metrics(fallacy_class: FallacyClass, from_fine_to_coarse: FallacyClass = FallacyClass.FINE_GRAINED):
     results_data = []
-    PROMPT_OPTIONS = [1]
+    PROMPT_OPTIONS = [1, 2]
     for prompt_option in PROMPT_OPTIONS:
         for model in TARGET_MODELS:
             results_data.append(
                 extract_metrics(
-                    model, prompt_option, coarse_grained, definitions=False, from_fine_to_coarse=from_fine_to_coarse
+                    model, prompt_option, fallacy_class, definitions=False, from_fine_to_coarse=from_fine_to_coarse
                 )
             )
             results_data.append(
                 extract_metrics(
-                    model, prompt_option, coarse_grained, definitions=True, from_fine_to_coarse=from_fine_to_coarse
+                    model, prompt_option, fallacy_class, definitions=True, from_fine_to_coarse=from_fine_to_coarse
                 )
             )
 
@@ -166,10 +159,10 @@ def run_metrics(coarse_grained: bool = False, from_fine_to_coarse: bool = False)
     for col in df.select_dtypes(include=["float"]).columns:
         df[col] = df[col].apply(lambda x: f"{x:.3f}")
 
-    if from_fine_to_coarse:
+    if from_fine_to_coarse != FallacyClass.FINE_GRAINED:
         caption = "Results when mapping fine grained results to coarse grained classes"
     else:
-        caption = "Coarse Grained Classes Results" if coarse_grained else "Fine Grained Classes Results"
+        caption = f"{fallacy_class.name} Classes Results"
     print(df.to_latex(index=False, caption=caption))
 
 
@@ -182,8 +175,10 @@ def run_plots(from_fine_to_coarse: bool = False):
 
 
 if __name__ == "__main__":
-    run_metrics(coarse_grained=False)
-    run_metrics(coarse_grained=True)
-    run_metrics(from_fine_to_coarse=True)
+    run_metrics(fallacy_class=FallacyClass.FINE_GRAINED)
+    run_metrics(fallacy_class=FallacyClass.COPI)
+    run_metrics(fallacy_class=FallacyClass.ARISTOTLE)
+    run_metrics(fallacy_class=FallacyClass.FINE_GRAINED, from_fine_to_coarse=FallacyClass.COPI)
+    run_metrics(fallacy_class=FallacyClass.FINE_GRAINED, from_fine_to_coarse=FallacyClass.ARISTOTLE)
 
     # run_plots()

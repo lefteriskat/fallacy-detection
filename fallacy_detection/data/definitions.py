@@ -91,6 +91,26 @@ COPI_COARSE_GRAINED_TO_FINE_GRAINDED_MAPPINGS = {
     "Fallacy of Ambiguity": ["equivocation", "miscellaneous"],
 }
 
+COPI_COARSE_GRAINED_TO_FINE_GRAINDED_MAPPINGS_LOWER = {
+    "fallacy of relevance": [
+        "ad hominem",
+        "ad populum",
+        "appeal to emotion",
+        "intentional fallacy",
+        "fallacy of extension",
+        "fallacy of relevance",
+    ],
+    "fallacy of defective induction": [
+        "false causality",
+        "false dilemma",
+        "faulty generalization",
+        "fallacy of logic",
+        "fallacy of credibility",
+    ],
+    "fallacy of presumption": ["circular reasoning"],
+    "fallacy of ambiguity": ["equivocation", "miscellaneous"],
+}
+
 COPI_FINE_GRAINED_TO_COARSE_GRAINDED_MAPPINGS = {
     value: key
     for key in COPI_COARSE_GRAINED_TO_FINE_GRAINDED_MAPPINGS.keys()
@@ -120,6 +140,28 @@ ARISTOTLE_COARSE_GRAINED_TO_FINE_GRAINDED_MAPPINGS = {
     ],
 }
 
+ARISTOTLE_COARSE_GRAINED_TO_FINE_GRAINDED_MAPPINGS_LOWER = {
+    "fallacy of credibility": [
+        "ad hominem",
+        "ad populum",
+        "fallacy of credibility",
+    ],
+    "fallacy of logic": [
+        "false causality",
+        "false dilemma",
+        "faulty generalization",
+        "fallacy of logic",
+        "circular reasoning",
+        "equivocation",
+        "fallacy of relevance",
+    ],
+    "fallacy of emotion": [
+        "appeal to emotion",
+        "intentional fallacy",
+        "fallacy of extension",
+    ],
+}
+
 ARISTOTLE_FINE_GRAINED_TO_COARSE_GRAINDED_MAPPINGS = {
     value: key
     for key in ARISTOTLE_COARSE_GRAINED_TO_FINE_GRAINDED_MAPPINGS.keys()
@@ -131,3 +173,17 @@ class FallacyClass(Enum):
     FINE_GRAINED = 1
     COPI = 2
     ARISTOTLE = 3
+
+
+ALL_FALLACIES_PER_FALLACY_CLASS = {
+    FallacyClass.FINE_GRAINED: ALL_LOGIC_FALLACIES,
+    FallacyClass.COPI: ALL_COPI_COARSE_GRAINED_LOGIC_FALLACIES,
+    FallacyClass.ARISTOTLE: ALL_ARISTOTLE_COARSE_GRAINED_LOGIC_FALLACIES,
+}
+
+
+ALL_FALLACIES_PER_FALLACY_CLASS_LOWER = {
+    FallacyClass.FINE_GRAINED: ALL_LOGIC_FALLACIES_LOWER,
+    FallacyClass.COPI: ALL_COPI_COARSE_GRAINED_LOGIC_FALLACIES_LOWER,
+    FallacyClass.ARISTOTLE: ALL_ARISTOTLE_COARSE_GRAINED_LOGIC_FALLACIES_LOWER,
+}

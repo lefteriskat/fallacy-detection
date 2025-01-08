@@ -1,12 +1,13 @@
 from omegaconf import DictConfig
-from transformers import LlamaForCausalLM, AutoModelForCausalLM, AutoTokenizer
+from transformers import LlamaForCausalLM, AutoModelForCausalLM, AutoTokenizer, pipeline
 import torch
 import os
 import numpy as np
 import random
 
-from fallacy_detection.prompts.prompt import get_logic_prompt
+from fallacy_detection.prompts.prompt import get_logic_prompt, get_multi_round_prompt
 from fallacy_detection.data.definitions import FallacyClass
+
 
 class Settings:
     def __init__(self, cfg: DictConfig) -> None:
@@ -26,6 +27,17 @@ class Settings:
         else:
             raise NotImplementedError
         return model
+    
+    def get_pipeline_from_hf(self):
+        model_name = self.cfg.model.name
+        my_pipeline = pipeline(
+                    "text-generation",
+                    model=model_name,
+                    model_kwargs={"torch_dtype": torch.bfloat16},
+                    device_map="auto",
+                )
+        return my_pipeline
+
 
     def get_tokenizer_from_hf(self):
         model_name = self.cfg.model.name
@@ -47,16 +59,12 @@ class Settings:
         include_definitions = self.cfg.prompt.definitions
         fallacy_class = FallacyClass(self.cfg.prompt.fallacy_classes)
         prompt_option = self.cfg.prompt.option
+        cot = self.cfg.prompt.cot
         prompts = [
-            get_logic_prompt(
-                option=prompt_option,
-                fallacy_class=fallacy_class,
-                include_definitions=include_definitions,
-                segment=segment,
-            )
+            f"{get_logic_prompt(option=prompt_option,fallacy_class=fallacy_class, cot = cot, include_definitions=include_definitions,segment=segment)}{tokenizer.eos_token if 'llama' in model_name else ''}"
             for segment in segments
         ]
-        
+
         if "llama" in model_name:
             encoding = tokenizer(
                 prompts[0],
@@ -77,7 +85,22 @@ class Settings:
         # input_ids = encoding["input_ids"].to(device)
         # attention_mask = encoding["attention_mask"].to(device)
         return encoding.to(device)
-
+    
+    
+    def get_messages(self, segments: list[str], response: str = None):
+        model_name = self.cfg.model.name
+        include_definitions = self.cfg.prompt.definitions
+        fallacy_class = FallacyClass(self.cfg.prompt.fallacy_classes)
+        prompt_option = self.cfg.prompt.option
+        cot = self.cfg.prompt.cot
+        messages = [get_multi_round_prompt(option=prompt_option, response=response, fallacy_class=fallacy_class, include_definitions=include_definitions,
+                                          segment=segment) for segment in segments]
+        # prompt = pipeline.tokenizer.apply_chat_template(
+        #     messages, tokenize=False, add_generation_prompt=True
+        # )
+        return messages
+    
+    
     @staticmethod
     def set_seed(seed=42):
         random.seed(seed)

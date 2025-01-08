@@ -30,6 +30,7 @@ def run_zero_shot(cfg: DictConfig) -> None:
 
     fallacy_class = FallacyClass(cfg.prompt.fallacy_classes)
     prompt_option = cfg.prompt.option
+    cot = cfg.prompt.cot
 
     model.eval()
     # Create the DataLoader
@@ -40,7 +41,7 @@ def run_zero_shot(cfg: DictConfig) -> None:
     predicted_labels = []
     true_labels = []
     original_texts = []
-    output_file = f"reports/{str(cfg.model.name).replace('/', '-')}_prompt{prompt_option}_{fallacy_class.name}_results{'_with_definitions' if cfg.prompt.definitions else '_no_definitions'}.csv"
+    output_file = f"reports/{str(cfg.model.name).replace('/', '-')}_prompt{prompt_option}_{'basic_cot' if cot else 'no_cot'}_{fallacy_class.name}_results{'_with_definitions' if cfg.prompt.definitions else '_no_definitions'}.csv"
     logger.info(f"Starting experiment with output file:\n{output_file}")
     for batch in tqdm(dataloader):
         text_segments = batch["text"]
