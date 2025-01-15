@@ -66,7 +66,7 @@ PROMPT1_ADD_SEGMENT = """The segment to be classified is the following: {delimit
 
 REMINDER_PROMPT1 = """\n\nProvide your output in strict JSON format with the key `detected_fallacy`. For example:
 {
-  "detected_fallacy": "name_of_fallacy"
+  "detected_fallacy": "name of fallacy"
 }"""
 
 
@@ -88,7 +88,7 @@ Segment:\n{segment}"""
 
 REMINDER_PROMPT2 = """\n\nRespond strictly in JSON format. For example:
 {
-  "detected_fallacy": "name_of_fallacy"
+  "detected_fallacy": "name of fallacy"
 }
 
 Do not include any explanation or additional commentary."""
@@ -103,6 +103,7 @@ def get_logic_prompt(
     segment: str = "{segment}",
     cot: bool = False,
     few_shot: bool = False,
+    multi_round: bool = False,
 ):
     if option == 1:
         if fallacy_class == FallacyClass.FINE_GRAINED:
@@ -123,9 +124,9 @@ def get_logic_prompt(
                 + definitions
                 + "\n"
                 + PROMPT1_ADD_SEGMENT.format(delimiter=DELIMITER, segment=segment)
-                + (BASIC_COT
-                if cot
-                else "") + "\n" + REMINDER_PROMPT1
+                + (BASIC_COT if cot else "")
+                + "\n"
+                + REMINDER_PROMPT1
             )
         else:
             return (
@@ -134,9 +135,9 @@ def get_logic_prompt(
                 + classes
                 + "\n"
                 + PROMPT1_ADD_SEGMENT.format(delimiter=DELIMITER, segment=segment)
-                + (BASIC_COT
-                if cot
-                else "") + "\n" + REMINDER_PROMPT1
+                + (BASIC_COT if cot else "")
+                + "\n"
+                + REMINDER_PROMPT1
             )
     elif option == 2:
         if fallacy_class == FallacyClass.FINE_GRAINED:
@@ -153,21 +154,19 @@ def get_logic_prompt(
 
         if include_definitions:
             return (
-                SYSTEM_PROMPT
+                (SYSTEM_PROMPT if not multi_round else "")
                 + "\n"
                 + DEFINITION_PROMPT.format(fallacies=prompt_2_definitions, segment=segment)
-                + (BASIC_COT
-                if cot
-                else "") + REMINDER_PROMPT2
+                + (BASIC_COT if cot else "")
+                + REMINDER_PROMPT2
             )
         else:
             return (
-                SYSTEM_PROMPT
+                (SYSTEM_PROMPT if not multi_round else "")
                 + "\n"
                 + NO_DEFINITION_PROMPT.format(fallacies=prompt_2_no_definitions, segment=segment)
-                + (BASIC_COT
-                if cot
-                else "") + REMINDER_PROMPT2
+                + (BASIC_COT if cot else "")
+                + REMINDER_PROMPT2
             )
 
 
@@ -179,19 +178,26 @@ MULTIROUND_PROMPT = [
     },
     {"role": "user", "content": """{first_round_prompt}"""},
     {"role": "assistant", "content": """{first_round_response}"""},
-    {"role": "user", "content": """Based on your response the text segment belongs to the {predicted_class}.\n\
-                                 This includes the following fine-grained sub-classses:\n\
+    {
+        "role": "user",
+        "content": """Based on your response the text segment belongs to the {predicted_class} high level fallacy type.\n\
+                                 This includes the following fine-grained fallacy types:\n\
                                  {second_round_prompt} \
-                                 \nYou should now specify which of the abovementioned classes better describes the logical fallacy that occurs in the segment given before.\n"""},
+                                 \nYou should now determine which of the abovementioned fallacy types occurs in the segment given before.\n""",
+    },
 ]
 
-def get_multi_round_prompt(option: int, response = None, 
+
+def get_multi_round_prompt(
+    option: int,
+    response=None,
     fallacy_class: FallacyClass = FallacyClass.FINE_GRAINED,
     include_definitions: bool = False,
     segment: str = "{segment}",
     cot: bool = False,
-    few_shot: bool = False,):
-    if response is None: #1st round
+    few_shot: bool = False,
+):
+    if response is None:  # 1st round
         prompt = []
         prompt.append(MULTIROUND_PROMPT[0])
         prompt.append(MULTIROUND_PROMPT[1])
@@ -200,24 +206,25 @@ def get_multi_round_prompt(option: int, response = None,
     else:
         prompt = response
         detected_fallacy = response[-1]["content"].lower()
-        
+
         # extract predicted coarse-grained fallacy from response
         predicted = clean_predicted_label(detected_fallacy, fallacy_class).lower()
-        fine_grained_classes = get_fine_grained_from_coarse_grained(fallacy_class, predicted)
+        fine_grained_classes = get_fine_grained_from_coarse_grained(fallacy_class, predicted, include_definitions)
         if fine_grained_classes is None:
             prompt = []
             prompt.append(MULTIROUND_PROMPT[0])
             prompt.append(MULTIROUND_PROMPT[1])
             prompt[1]["content"] = get_logic_prompt(option, FallacyClass.FINE_GRAINED, include_definitions, segment)
         else:
-            fine_grained_classes_str = "\n".join(
-                                            [str(i + 1) + ". " + s for i, s in enumerate(fine_grained_classes)]
-                                        )
+            fine_grained_classes_str = "\n".join([str(i + 1) + ". " + s for i, s in enumerate(fine_grained_classes)])
             prompt_to_add = MULTIROUND_PROMPT[3].copy()
-            prompt_to_add["content"] = prompt_to_add["content"].format(predicted_class=predicted, second_round_prompt=fine_grained_classes_str) + REMINDER_PROMPT2
+            prompt_to_add["content"] = (
+                prompt_to_add["content"].format(predicted_class=predicted, second_round_prompt=fine_grained_classes_str)
+                + REMINDER_PROMPT2
+            )
             prompt.append(prompt_to_add)
         return prompt
-    
+
 
 # def get_logic_cot_prompt():
 #     pass
@@ -235,8 +242,12 @@ def main():
     #     print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
     #     print(get_logic_prompt(option=option, fallacy_class=FallacyClass.ARISTOTLE, include_definitions=True))
     #     print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
-    print(get_logic_prompt(option=2, fallacy_class=FallacyClass.ARISTOTLE, include_definitions=True, segment= "lala"))
-    print(get_multi_round_prompt(option=2, fallacy_class=FallacyClass.ARISTOTLE, include_definitions=True, segment="aaaaa"))
+    print(get_logic_prompt(option=2, fallacy_class=FallacyClass.ARISTOTLE, include_definitions=True, segment="lala"))
+    print(
+        get_multi_round_prompt(
+            option=2, fallacy_class=FallacyClass.ARISTOTLE, include_definitions=True, segment="aaaaa"
+        )
+    )
 
 
 if __name__ == "__main__":

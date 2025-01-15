@@ -27,17 +27,16 @@ class Settings:
         else:
             raise NotImplementedError
         return model
-    
+
     def get_pipeline_from_hf(self):
         model_name = self.cfg.model.name
         my_pipeline = pipeline(
-                    "text-generation",
-                    model=model_name,
-                    model_kwargs={"torch_dtype": torch.bfloat16},
-                    device_map="auto",
-                )
+            "text-generation",
+            model=model_name,
+            model_kwargs={"torch_dtype": torch.bfloat16},
+            device_map="auto",
+        )
         return my_pipeline
-
 
     def get_tokenizer_from_hf(self):
         model_name = self.cfg.model.name
@@ -85,22 +84,28 @@ class Settings:
         # input_ids = encoding["input_ids"].to(device)
         # attention_mask = encoding["attention_mask"].to(device)
         return encoding.to(device)
-    
-    
+
     def get_messages(self, segments: list[str], response: str = None):
         model_name = self.cfg.model.name
         include_definitions = self.cfg.prompt.definitions
         fallacy_class = FallacyClass(self.cfg.prompt.fallacy_classes)
         prompt_option = self.cfg.prompt.option
         cot = self.cfg.prompt.cot
-        messages = [get_multi_round_prompt(option=prompt_option, response=response, fallacy_class=fallacy_class, include_definitions=include_definitions,
-                                          segment=segment) for segment in segments]
+        messages = [
+            get_multi_round_prompt(
+                option=prompt_option,
+                response=response,
+                fallacy_class=fallacy_class,
+                include_definitions=include_definitions,
+                segment=segment,
+            )
+            for segment in segments
+        ]
         # prompt = pipeline.tokenizer.apply_chat_template(
         #     messages, tokenize=False, add_generation_prompt=True
         # )
         return messages
-    
-    
+
     @staticmethod
     def set_seed(seed=42):
         random.seed(seed)

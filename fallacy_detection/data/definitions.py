@@ -10,7 +10,7 @@ ALL_LOGIC_FALLACIES = [
     "Ad Hominem",
     "Fallacy of Extension",
     "Equivocation",
-    "Deductive Fallacy",
+    "Fallacy of Logic",
     "Fallacy of Credibility",
     "Intentional Fallacy",
     "False Dilemma",
@@ -45,7 +45,7 @@ ALL_LOGIC_FALLACIES_WITH_DEFINITION = [
     "Circular Reasoning: A fallacy where the end of an argument comes back to the beginning without having proven itself.",
     "Fallacy of Extension: An argument that attacks an exaggerated or caricatured version of your opponent’s position.",
     "Equivocation: An argument which uses a key term or phrase in an ambiguous way, with one meaning in one portion of the argument and then another meaning in another portion of the argument.",
-    "Deductive Fallacy: An error in the logical structure of an argument. ",
+    "Fallacy of Logic: An error in the logical structure of an argument. ",
     "Intentional Fallacy: Some intentional (sometimes subconscious) action/choice to incorrectly support an argument.",
 ]
 
@@ -111,6 +111,27 @@ COPI_COARSE_GRAINED_TO_FINE_GRAINDED_MAPPINGS_LOWER = {
     "fallacy of ambiguity": ["equivocation", "miscellaneous"],
 }
 
+COPI_COARSE_GRAINED_TO_FINE_GRAINDED_MAPPINGS_LOWER_WITH_DEFINITIONS = {
+    "fallacy of relevance": [
+        "ad hominem: The opponent attacks a person instead of arguing against the claims that the person has put forward.",
+        "ad populum: A fallacious argument which is based on affirming that something is real or better because the majority thinks so.",
+        "appeal to emotion: attempting to arouse non-rational sentiments within the intended audience in order to persuade.",
+        "intentional fallacy: Some intentional (sometimes subconscious) action/choice to incorrectly support an argument.",
+        "fallacy of extension: An argument that attacks an exaggerated or caricatured version of your opponent’s position.",
+        "fallacy of relevance: The argument supporting the claim diverges the attention to issues which are irrelevant for the claim at hand.",
+    ],
+    "fallacy of defective induction": [
+        "false causality: occurs when someone mistakenly assumes that because one event follows another, the first event caused the second, without sufficient evidence for a causal link.",
+        "false dilemma: Presenting two alternative options as the only possibilities, when in fact more possibilities exist.",
+        "faulty generalization: A generalization is drawn from a sample which is too small, it is not representative of the population or it is not applicable to the situation if all the variables are taken into account.",
+        "fallacy of logic:  An error in the logical structure of an argument",
+        "fallacy of credibility: happens when someone argues that a claim is true simply because an authority or expert believes it, even if that authority is not a reliable or relevant source on the topic.",
+    ],
+    "fallacy of presumption": ["circular reasoning: A fallacy where the end of an argument comes back to the beginning without having proven itself."],
+    "fallacy of ambiguity": ["equivocation: An argument which uses a key term or phrase in an ambiguous way, with one meaning in one portion of the argument and then another meaning in another portion of the argument.",
+                             "miscellaneous"],
+}
+
 COPI_FINE_GRAINED_TO_COARSE_GRAINDED_MAPPINGS = {
     value: key
     for key in COPI_COARSE_GRAINED_TO_FINE_GRAINDED_MAPPINGS.keys()
@@ -159,6 +180,28 @@ ARISTOTLE_COARSE_GRAINED_TO_FINE_GRAINDED_MAPPINGS_LOWER = {
         "appeal to emotion",
         "intentional fallacy",
         "fallacy of extension",
+    ],
+}
+
+ARISTOTLE_COARSE_GRAINED_TO_FINE_GRAINDED_MAPPINGS_LOWER_WITH_DEFINITIONS = {
+    "fallacy of credibility": [
+        "ad hominem: The opponent attacks a person instead of arguing against the claims that the person has put forward.",
+        "ad populum: A fallacious argument which is based on affirming that something is real or better because the majority thinks so.",
+        "fallacy of credibility: happens when someone argues that a claim is true simply because an authority or expert believes it, even if that authority is not a reliable or relevant source on the topic.",
+    ],
+    "fallacy of logic": [
+        "false causality: occurs when someone mistakenly assumes that because one event follows another, the first event caused the second, without sufficient evidence for a causal link.",
+        "false dilemma: Presenting two alternative options as the only possibilities, when in fact more possibilities exist.",
+        "faulty generalization: A generalization is drawn from a sample which is too small, it is not representative of the population or it is not applicable to the situation if all the variables are taken into account.",
+        "fallacy of logic:  An error in the logical structure of an argument",
+        "circular reasoning: A fallacy where the end of an argument comes back to the beginning without having proven itself.",
+        "equivocation: An argument which uses a key term or phrase in an ambiguous way, with one meaning in one portion of the argument and then another meaning in another portion of the argument.",
+        "fallacy of relevance: The argument supporting the claim diverges the attention to issues which are irrelevant for the claim at hand.",
+    ],
+    "fallacy of emotion": [
+        "appeal to emotion: attempting to arouse non-rational sentiments within the intended audience in order to persuade.",
+        "intentional fallacy: Some intentional (sometimes subconscious) action/choice to incorrectly support an argument.",
+        "fallacy of extension: An argument that attacks an exaggerated or caricatured version of your opponent’s position.",
     ],
 }
 

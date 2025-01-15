@@ -18,7 +18,7 @@ logger = setup_logger()
 def run_zero_shot(cfg: DictConfig) -> None:
     print(OmegaConf.to_yaml(cfg))
     settings = Settings(cfg)
-    Settings.set_seed()
+    Settings.set_seed(42)
     accelerator = Accelerator()
     device = accelerator.device
     print(device)
@@ -41,7 +41,7 @@ def run_zero_shot(cfg: DictConfig) -> None:
     predicted_labels = []
     true_labels = []
     original_texts = []
-    output_file = f"reports/{str(cfg.model.name).replace('/', '-')}_prompt{prompt_option}_{'basic_cot' if cot else 'no_cot'}_{fallacy_class.name}_results{'_with_definitions' if cfg.prompt.definitions else '_no_definitions'}.csv"
+    output_file = f"final_reports/{str(cfg.model.name).replace('/', '-')}_prompt{prompt_option}_{'basic_cot' if cot else 'no_cot'}_{fallacy_class.name}_results{'_with_definitions' if cfg.prompt.definitions else '_no_definitions'}.csv"
     logger.info(f"Starting experiment with output file:\n{output_file}")
     for batch in tqdm(dataloader):
         text_segments = batch["text"]
