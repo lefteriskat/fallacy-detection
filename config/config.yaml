@@ -9,3 +9,5 @@ prompt:
   examples: False
   fallacy_classes: 2 #FINE_GRAINED = 1 # COPI = 2 # ARISTOTLE = 3
   cot: False
+seed: 64
+temperature: 1.0

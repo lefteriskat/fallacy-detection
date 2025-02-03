@@ -235,19 +235,19 @@ def get_multi_round_prompt(
 
 
 def main():
-    # for option in [1, 2]:
-    #     print(get_logic_prompt(option=option, fallacy_class=FallacyClass.FINE_GRAINED, include_definitions=True))
+    for option in [1, 2]:
+        print(get_logic_prompt(option=option, fallacy_class=FallacyClass.FINE_GRAINED, include_definitions=True))
     #     print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
     #     print(get_logic_prompt(option=option, fallacy_class=FallacyClass.COPI, include_definitions=True))
     #     print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
     #     print(get_logic_prompt(option=option, fallacy_class=FallacyClass.ARISTOTLE, include_definitions=True))
     #     print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
-    print(get_logic_prompt(option=2, fallacy_class=FallacyClass.ARISTOTLE, include_definitions=True, segment="lala"))
-    print(
-        get_multi_round_prompt(
-            option=2, fallacy_class=FallacyClass.ARISTOTLE, include_definitions=True, segment="aaaaa"
-        )
-    )
+    # print(get_logic_prompt(option=2, fallacy_class=FallacyClass.ARISTOTLE, include_definitions=True, segment="lala"))
+    # print(
+    #     get_multi_round_prompt(
+    #         option=2, fallacy_class=FallacyClass.ARISTOTLE, include_definitions=True, segment="aaaaa"
+    #     )
+    # )
 
 
 if __name__ == "__main__":
