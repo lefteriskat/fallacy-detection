@@ -74,26 +74,32 @@ def extract_metrics(
     definitions: bool,
     from_fine_to_coarse: FallacyClass = FallacyClass.FINE_GRAINED,
 ):
-    metrics_dict = {"model": model_name.split("/", 1)[1], "definitions": definitions, "prompt": prompt_option,
-                    "accuracy":[], "f1 score": [], "failed": [], "unknown labels":[] }
-    
-    
-    for seed in ["","_64", "_128", "_256", "_2025", "_7", "_69"]:
+    metrics_dict = {
+        "model": model_name.split("/", 1)[1],
+        "definitions": definitions,
+        "prompt": prompt_option,
+        "accuracy": [],
+        "f1 score": [],
+        "failed": [],
+        "unknown labels": [],
+    }
+
+    for seed in ["", "_64", "_128", "_256", "_2025", "_7", "_69"]:
         filename = f"final_reports/{model_name.replace('/', '-')}_prompt{prompt_option}_basic_cot_{fallacy_class.name}_results{'_with_definitions' if definitions else '_no_definitions'}{seed}.csv"
-        
+
         dataframe = pd.read_csv(filename)
         dataframe = preprocess_results(dataframe, fallacy_class, from_fine_to_coarse)
 
         metrics_dict["accuracy"] += [
             accuracy_score(dataframe["true_label"].to_numpy(), dataframe["predicted_label"].to_numpy()) * 100
         ]
-        metrics_dict["f1 score"] += [f1_score(
-            dataframe["true_label"].to_numpy(), dataframe["predicted_label"].to_numpy(), average="macro"
-        )*100]
+        metrics_dict["f1 score"] += [
+            f1_score(dataframe["true_label"].to_numpy(), dataframe["predicted_label"].to_numpy(), average="macro") * 100
+        ]
         # compute unknown percentage
         unknown_count = dataframe["predicted_label"].eq(FAILED).sum()
         total_count = len(dataframe["predicted_label"])
-        unknown_percentage = ((unknown_count / total_count) * 100)
+        unknown_percentage = (unknown_count / total_count) * 100
         metrics_dict["failed"] += [unknown_percentage]
         # compute percentage of labels not found in the LOGIC's dataset classes
         different_labels_count = (
@@ -110,20 +116,21 @@ def extract_metrics(
         )
         different_labels_percentage = (different_labels_count / total_count) * 100
         metrics_dict["unknown labels"] += [different_labels_percentage]
-        
-    accuracy_mean = round(float(np.mean(metrics_dict["accuracy"])),3)
-    accuracy_std = round(float(np.std(metrics_dict["accuracy"])),3)
+
+    accuracy_mean = round(float(np.mean(metrics_dict["accuracy"])), 3)
+    accuracy_std = round(float(np.std(metrics_dict["accuracy"])), 3)
     metrics_dict["accuracy"] = (accuracy_mean, accuracy_std)
-    f1_score_mean = round(float(np.mean(metrics_dict["f1 score"])),3)
-    f1_score_std = round(float(np.std(metrics_dict["f1 score"])),3)
+    f1_score_mean = round(float(np.mean(metrics_dict["f1 score"])), 3)
+    f1_score_std = round(float(np.std(metrics_dict["f1 score"])), 3)
     metrics_dict["f1 score"] = (f1_score_mean, f1_score_std)
-    failed_mean = round(float(np.mean(metrics_dict["failed"])),3)
-    failed_std = round(float(np.std(metrics_dict["failed"])),3)
+    failed_mean = round(float(np.mean(metrics_dict["failed"])), 3)
+    failed_std = round(float(np.std(metrics_dict["failed"])), 3)
     metrics_dict["failed"] = (failed_mean, failed_std)
-    unknown_labels_mean = round(float(np.mean(metrics_dict["unknown labels"])),3)
-    unknown_labels_std = round(float(np.std(metrics_dict["unknown labels"])),3)
+    unknown_labels_mean = round(float(np.mean(metrics_dict["unknown labels"])), 3)
+    unknown_labels_std = round(float(np.std(metrics_dict["unknown labels"])), 3)
     metrics_dict["unknown labels"] = (unknown_labels_mean, unknown_labels_std)
     return metrics_dict
+
 
 def run_metrics(fallacy_class: FallacyClass, from_fine_to_coarse: FallacyClass = FallacyClass.FINE_GRAINED):
     results_data = []
@@ -152,7 +159,6 @@ def run_metrics(fallacy_class: FallacyClass, from_fine_to_coarse: FallacyClass =
         caption = f"{fallacy_class.name} Classes Results"
     print(df.to_latex(index=False, caption=caption))
     # print(df.to_csv("lalal.csv"))
-
 
 
 if __name__ == "__main__":

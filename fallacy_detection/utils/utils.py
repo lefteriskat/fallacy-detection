@@ -28,7 +28,9 @@ def clean_predicted_label(json_label, fallacy_class: FallacyClass):
         return FAILED
 
 
-def get_fine_grained_from_coarse_grained(fallacy_class: FallacyClass, fallacy: str, include_definitions: bool) -> list[str]:
+def get_fine_grained_from_coarse_grained(
+    fallacy_class: FallacyClass, fallacy: str, include_definitions: bool
+) -> list[str]:
     if fallacy_class == FallacyClass.COPI and not include_definitions:
         return COPI_COARSE_GRAINED_TO_FINE_GRAINDED_MAPPINGS_LOWER.get(fallacy, None)
     elif fallacy_class == FallacyClass.COPI and include_definitions:

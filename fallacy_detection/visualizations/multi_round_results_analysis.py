@@ -47,13 +47,13 @@ METRICS_FOLDER = "reports/analysed_results/metrics/"
 
 def preprocess_results(dataframe: pd.DataFrame, fallacy_class: FallacyClass, from_fine_to_coarse: FallacyClass):
     # clean predicted_label
-    
+
     dataframe["round1_predicted_label"] = dataframe["round1_predicted_label"].apply(
         lambda predicted_label: clean_predicted_label(predicted_label, fallacy_class)
     )
-    
-    dataframe["round1_true_label"] = dataframe["round1_true_label"].apply(lambda x : x.lower())
-    dataframe["true_label"] = dataframe["true_label"].apply(lambda x : x.lower())
+
+    dataframe["round1_true_label"] = dataframe["round1_true_label"].apply(lambda x: x.lower())
+    dataframe["true_label"] = dataframe["true_label"].apply(lambda x: x.lower())
 
     # create a column that is true if the predicted label is the same as the true label
     dataframe["round1_correct_prediction"] = dataframe["round1_predicted_label"] == dataframe["round1_true_label"]
@@ -87,7 +87,7 @@ def extract_metrics(
     metrics_dict["round1_f1 score"] = f1_score(
         dataframe["round1_true_label"].to_numpy(), dataframe["round1_predicted_label"].to_numpy(), average="macro"
     )
-    
+
     metrics_dict["accuracy"] = (
         accuracy_score(dataframe["true_label"].to_numpy(), dataframe["predicted_label"].to_numpy()) * 100
     )
@@ -103,13 +103,7 @@ def extract_metrics(
     different_labels_count = (
         dataframe["predicted_label"]
         .str.lower()
-        .apply(
-            lambda x: x
-            not in ALL_FALLACIES_PER_FALLACY_CLASS_LOWER[
-                FallacyClass.FINE_GRAINED
-            ]
-            and x != FAILED
-        )
+        .apply(lambda x: x not in ALL_FALLACIES_PER_FALLACY_CLASS_LOWER[FallacyClass.FINE_GRAINED] and x != FAILED)
         .sum()
     )
     different_labels_percentage = (different_labels_count / total_count) * 100
@@ -184,10 +178,10 @@ def run_plots(from_fine_to_coarse: bool = False):
 
 
 if __name__ == "__main__":
-    #run_metrics(fallacy_class=FallacyClass.FINE_GRAINED)
+    # run_metrics(fallacy_class=FallacyClass.FINE_GRAINED)
     run_metrics(fallacy_class=FallacyClass.COPI)
     run_metrics(fallacy_class=FallacyClass.ARISTOTLE)
-    #run_metrics(fallacy_class=FallacyClass.FINE_GRAINED, from_fine_to_coarse=FallacyClass.COPI)
-    #run_metrics(fallacy_class=FallacyClass.FINE_GRAINED, from_fine_to_coarse=FallacyClass.ARISTOTLE)
+    # run_metrics(fallacy_class=FallacyClass.FINE_GRAINED, from_fine_to_coarse=FallacyClass.COPI)
+    # run_metrics(fallacy_class=FallacyClass.FINE_GRAINED, from_fine_to_coarse=FallacyClass.ARISTOTLE)
 
     # run_plots()

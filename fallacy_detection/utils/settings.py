@@ -18,7 +18,10 @@ class Settings:
         model_name = self.cfg.model.name
         if "llama" in model_name:
             model = LlamaForCausalLM.from_pretrained(
-                model_name, token=os.environ["llama_hf_token"], torch_dtype=torch.bfloat16, device_map="auto",
+                model_name,
+                token=os.environ["llama_hf_token"],
+                torch_dtype=torch.bfloat16,
+                device_map="auto",
             )
         elif "mistral" or "falcon" in model_name:
             model = AutoModelForCausalLM.from_pretrained(

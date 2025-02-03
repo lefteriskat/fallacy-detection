@@ -27,7 +27,7 @@ def run_zero_shot(cfg: DictConfig) -> None:
     prompt_option = cfg.prompt.option
     cot = cfg.prompt.cot
     temperature = cfg.temperature
-    
+
     output_file = f"final_reports/{str(cfg.model.name).replace('/', '-')}_prompt{prompt_option}_{'basic_cot' if cot else 'no_cot'}_{fallacy_class.name}_results{'_with_definitions' if cfg.prompt.definitions else '_no_definitions'}_{cfg.seed}_____.csv"
     if os.path.exists(output_file):
         logger.info(f"File {output_file} exists!!!!!!!!!")
@@ -35,13 +35,11 @@ def run_zero_shot(cfg: DictConfig) -> None:
         tokenizer = settings.get_tokenizer_from_hf()
         model = settings.get_model_from_hf()
         model.generation_config.pad_token_id = tokenizer.pad_token_id
-        
+
         logger.info(model.generation_config)
         exit(0)
 
         logic_dataset = LogicDataset(cfg)
-
-        
 
         model.eval()
         # Create the DataLoader
@@ -99,7 +97,9 @@ def run_zero_shot(cfg: DictConfig) -> None:
                     original_texts.append(text_segments[0])
 
         logger.info(f"accuracy = {correct/total}")
-        results_df = pd.DataFrame({"text": original_texts, "true_label": true_labels, "predicted_label": predicted_labels})
+        results_df = pd.DataFrame(
+            {"text": original_texts, "true_label": true_labels, "predicted_label": predicted_labels}
+        )
         results_df.to_csv(output_file)
         logger.info(f"Finished experiment with output file:\n{output_file}")
 

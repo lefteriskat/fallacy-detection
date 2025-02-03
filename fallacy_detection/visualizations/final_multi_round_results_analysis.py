@@ -48,13 +48,13 @@ METRICS_FOLDER = "reports/analysed_results/metrics/"
 
 def preprocess_results(dataframe: pd.DataFrame, fallacy_class: FallacyClass, from_fine_to_coarse: FallacyClass):
     # clean predicted_label
-    
+
     dataframe["round1_predicted_label"] = dataframe["round1_predicted_label"].apply(
         lambda predicted_label: clean_predicted_label(predicted_label, fallacy_class)
     )
-    
-    dataframe["round1_true_label"] = dataframe["round1_true_label"].apply(lambda x : x.lower())
-    dataframe["true_label"] = dataframe["true_label"].apply(lambda x : x.lower())
+
+    dataframe["round1_true_label"] = dataframe["round1_true_label"].apply(lambda x: x.lower())
+    dataframe["true_label"] = dataframe["true_label"].apply(lambda x: x.lower())
 
     # create a column that is true if the predicted label is the same as the true label
     dataframe["round1_correct_prediction"] = dataframe["round1_predicted_label"] == dataframe["round1_true_label"]
@@ -76,28 +76,42 @@ def extract_metrics(
     definitions: bool,
     from_fine_to_coarse: FallacyClass = FallacyClass.FINE_GRAINED,
 ):
-    metrics_dict = {"model": model_name.split("/", 1)[1], "definitions": definitions, "prompt": prompt_option,
-                    "round1_accuracy":[], "round1_f1 score":[],
-                    "accuracy":[], "f1 score": [], "failed": [], "unknown labels":[]}
+    metrics_dict = {
+        "model": model_name.split("/", 1)[1],
+        "definitions": definitions,
+        "prompt": prompt_option,
+        "round1_accuracy": [],
+        "round1_f1 score": [],
+        "accuracy": [],
+        "f1 score": [],
+        "failed": [],
+        "unknown labels": [],
+    }
 
     for seed in [42, 64, 128, 256, 1995, 2025, 2055]:
         filename = f"final_reports_mr/{model_name.replace('/', '-')}_prompt{prompt_option}_no_cot_{fallacy_class.name}_results{'_with_definitions' if definitions else '_no_definitions'}_{seed}_temp1.0.csv"
         dataframe = pd.read_csv(filename)
         dataframe = preprocess_results(dataframe, fallacy_class, from_fine_to_coarse)
-        
+
         metrics_dict["round1_accuracy"] += [
-            accuracy_score(dataframe["round1_true_label"].to_numpy(), dataframe["round1_predicted_label"].to_numpy()) * 100
+            accuracy_score(dataframe["round1_true_label"].to_numpy(), dataframe["round1_predicted_label"].to_numpy())
+            * 100
         ]
-        metrics_dict["round1_f1 score"] += [f1_score(
-            dataframe["round1_true_label"].to_numpy(), dataframe["round1_predicted_label"].to_numpy(), average="macro"
-        ) * 100]
-        
+        metrics_dict["round1_f1 score"] += [
+            f1_score(
+                dataframe["round1_true_label"].to_numpy(),
+                dataframe["round1_predicted_label"].to_numpy(),
+                average="macro",
+            )
+            * 100
+        ]
+
         metrics_dict["accuracy"] += [
             accuracy_score(dataframe["true_label"].to_numpy(), dataframe["predicted_label"].to_numpy()) * 100
         ]
-        metrics_dict["f1 score"] += [f1_score(
-            dataframe["true_label"].to_numpy(), dataframe["predicted_label"].to_numpy(), average="macro"
-        )*100]
+        metrics_dict["f1 score"] += [
+            f1_score(dataframe["true_label"].to_numpy(), dataframe["predicted_label"].to_numpy(), average="macro") * 100
+        ]
         # compute unknown percentage
         unknown_count = dataframe["predicted_label"].eq(FAILED).sum()
         total_count = len(dataframe["predicted_label"])
@@ -107,35 +121,29 @@ def extract_metrics(
         different_labels_count = (
             dataframe["predicted_label"]
             .str.lower()
-            .apply(
-                lambda x: x
-                not in ALL_FALLACIES_PER_FALLACY_CLASS_LOWER[
-                    FallacyClass.FINE_GRAINED
-                ]
-                and x != FAILED
-            )
+            .apply(lambda x: x not in ALL_FALLACIES_PER_FALLACY_CLASS_LOWER[FallacyClass.FINE_GRAINED] and x != FAILED)
             .sum()
         )
         different_labels_percentage = (different_labels_count / total_count) * 100
         metrics_dict["unknown labels"] += [different_labels_percentage]
-        
-    r1accuracy_mean = round(float(np.mean(metrics_dict["round1_accuracy"])),3)
-    r1accuracy_std = round(float(np.std(metrics_dict["round1_accuracy"])),3)
+
+    r1accuracy_mean = round(float(np.mean(metrics_dict["round1_accuracy"])), 3)
+    r1accuracy_std = round(float(np.std(metrics_dict["round1_accuracy"])), 3)
     metrics_dict["round1_accuracy"] = (r1accuracy_mean, r1accuracy_std)
-    r1f1_score_mean = round(float(np.mean(metrics_dict["round1_f1 score"])),3)
-    r1f1_score_std = round(float(np.std(metrics_dict["round1_f1 score"])),3)
+    r1f1_score_mean = round(float(np.mean(metrics_dict["round1_f1 score"])), 3)
+    r1f1_score_std = round(float(np.std(metrics_dict["round1_f1 score"])), 3)
     metrics_dict["round1_f1 score"] = (r1f1_score_mean, r1f1_score_std)
-    accuracy_mean = round(float(np.mean(metrics_dict["accuracy"])),3)
-    accuracy_std = round(float(np.std(metrics_dict["accuracy"])),3)
+    accuracy_mean = round(float(np.mean(metrics_dict["accuracy"])), 3)
+    accuracy_std = round(float(np.std(metrics_dict["accuracy"])), 3)
     metrics_dict["accuracy"] = (accuracy_mean, accuracy_std)
-    f1_score_mean = round(float(np.mean(metrics_dict["f1 score"])),3)
-    f1_score_std = round(float(np.std(metrics_dict["f1 score"])),3)
+    f1_score_mean = round(float(np.mean(metrics_dict["f1 score"])), 3)
+    f1_score_std = round(float(np.std(metrics_dict["f1 score"])), 3)
     metrics_dict["f1 score"] = (f1_score_mean, f1_score_std)
-    failed_mean = round(float(np.mean(metrics_dict["failed"])),3)
-    failed_std = round(float(np.std(metrics_dict["failed"])),3)
+    failed_mean = round(float(np.mean(metrics_dict["failed"])), 3)
+    failed_std = round(float(np.std(metrics_dict["failed"])), 3)
     metrics_dict["failed"] = (failed_mean, failed_std)
-    unknown_labels_mean = round(float(np.mean(metrics_dict["unknown labels"])),3)
-    unknown_labels_std = round(float(np.std(metrics_dict["unknown labels"])),3)
+    unknown_labels_mean = round(float(np.mean(metrics_dict["unknown labels"])), 3)
+    unknown_labels_std = round(float(np.std(metrics_dict["unknown labels"])), 3)
     metrics_dict["unknown labels"] = (unknown_labels_mean, unknown_labels_std)
     return metrics_dict
 
@@ -169,10 +177,10 @@ def run_metrics(fallacy_class: FallacyClass, from_fine_to_coarse: FallacyClass =
 
 
 if __name__ == "__main__":
-    #run_metrics(fallacy_class=FallacyClass.FINE_GRAINED)
+    # run_metrics(fallacy_class=FallacyClass.FINE_GRAINED)
     run_metrics(fallacy_class=FallacyClass.COPI)
     run_metrics(fallacy_class=FallacyClass.ARISTOTLE)
-    #run_metrics(fallacy_class=FallacyClass.FINE_GRAINED, from_fine_to_coarse=FallacyClass.COPI)
-    #run_metrics(fallacy_class=FallacyClass.FINE_GRAINED, from_fine_to_coarse=FallacyClass.ARISTOTLE)
+    # run_metrics(fallacy_class=FallacyClass.FINE_GRAINED, from_fine_to_coarse=FallacyClass.COPI)
+    # run_metrics(fallacy_class=FallacyClass.FINE_GRAINED, from_fine_to_coarse=FallacyClass.ARISTOTLE)
 
     # run_plots()

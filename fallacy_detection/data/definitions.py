@@ -127,9 +127,13 @@ COPI_COARSE_GRAINED_TO_FINE_GRAINDED_MAPPINGS_LOWER_WITH_DEFINITIONS = {
         "fallacy of logic:  An error in the logical structure of an argument",
         "fallacy of credibility: happens when someone argues that a claim is true simply because an authority or expert believes it, even if that authority is not a reliable or relevant source on the topic.",
     ],
-    "fallacy of presumption": ["circular reasoning: A fallacy where the end of an argument comes back to the beginning without having proven itself."],
-    "fallacy of ambiguity": ["equivocation: An argument which uses a key term or phrase in an ambiguous way, with one meaning in one portion of the argument and then another meaning in another portion of the argument.",
-                             "miscellaneous"],
+    "fallacy of presumption": [
+        "circular reasoning: A fallacy where the end of an argument comes back to the beginning without having proven itself."
+    ],
+    "fallacy of ambiguity": [
+        "equivocation: An argument which uses a key term or phrase in an ambiguous way, with one meaning in one portion of the argument and then another meaning in another portion of the argument.",
+        "miscellaneous",
+    ],
 }
 
 COPI_FINE_GRAINED_TO_COARSE_GRAINDED_MAPPINGS = {

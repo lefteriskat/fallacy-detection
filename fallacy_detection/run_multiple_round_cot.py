@@ -45,7 +45,7 @@ def run_multiple_round(cfg: DictConfig) -> None:
         predicted_labels = []
         true_labels = []
         original_texts = []
-        
+
         logger.info(f"Starting experiment with output file:\n{output_file}")
         for batch in tqdm(dataloader):
             text_segments = batch["text"]
@@ -57,11 +57,7 @@ def run_multiple_round(cfg: DictConfig) -> None:
                     if round == 1:
                         messages = settings.get_messages(text_segments)
                         # messages.to(device)
-                        outputs = my_pipeline(
-                            messages,
-                            max_new_tokens=256,
-                            temperature=temperature
-                        )
+                        outputs = my_pipeline(messages, max_new_tokens=256, temperature=temperature)
 
                         if fallacy_class == FallacyClass.FINE_GRAINED:
                             target_round1_label = fine_grained_fallacy_labels[0].lower()
@@ -82,11 +78,7 @@ def run_multiple_round(cfg: DictConfig) -> None:
                         true_round1_labels.append(target_round1_label)
                     elif round == 2:
                         messages = settings.get_messages(text_segments, outputs[0][0]["generated_text"])
-                        outputs = my_pipeline(
-                            messages,
-                            max_new_tokens=256,
-                            temperature=temperature
-                        )
+                        outputs = my_pipeline(messages, max_new_tokens=256, temperature=temperature)
 
                         target_label = fine_grained_fallacy_labels[0].lower()
                         if total % 10 == 0:

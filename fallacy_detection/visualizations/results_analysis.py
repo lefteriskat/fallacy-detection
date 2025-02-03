@@ -74,7 +74,7 @@ def extract_metrics(
     from_fine_to_coarse: FallacyClass = FallacyClass.FINE_GRAINED,
 ):
     filename = f"final_reports/{model_name.replace('/', '-')}_prompt{prompt_option}_no_cot_{fallacy_class.name}_results{'_with_definitions' if definitions else '_no_definitions'}_69.csv"
-    
+
     try:
         dataframe = pd.read_csv(filename)
     except:
